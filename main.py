@@ -38,18 +38,18 @@ c.set_callback(sub_cb)
 if not c.connect(clean_session=False):
     #print("New session being set up")
     #c.subscribe(b"foo_topic")
-    c.publish(b"heartbeat", b"New session being set up", qos=1)
+    c.publish(b"heartbeat", b"New session being set up")
 
 def main():
     while True:
         try:
-            c.publish(b"heartbeat", CLIENT_ID, qos=1)
+            c.publish(b"heartbeat", CLIENT_ID)
             print("publish msg")
 
             # read ds18x20 sensors
             values = readDS18x20()
             for value in values:
-                c.publish(CLIENT_ID + "/" + "temperature" + "/" + str(values.index(value)), str(value), qos=1)
+                c.publish(CLIENT_ID + "/" + "temperature" + "/" + str(values.index(value)), str(value))
         except TypeError as te:
             pass
         time.sleep(5)
