@@ -15,19 +15,22 @@ c.DEBUG = False
 def main():
     while True:
         try:
-            c.connect()
-            c.publish(b"heartbeat", CLIENT_ID)
-            print("publish msg")
-
             i2c = machine.I2C(scl=machine.Pin(0), sda=machine.Pin(2))
             bme = bme280.BME280(i2c=i2c, address=119)
+
+            c.connect()
+            c.publish(b"heartbeat", CLIENT_ID)
 
             c.publish(CLIENT_ID + "/temperature", bme.values[0])
             c.publish(CLIENT_ID + "/pressure", bme.values[1])
             c.publish(CLIENT_ID + "/humidity", bme.values[2])
+            print("published msg")
             
-        except (TypeError, OSError):
+        except Exception as e:
+            print(str(e))
             machine.reset()
+        finally:
+            c.disconnect()
         time.sleep(5)
 
 if __name__ == '__main__':
