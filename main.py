@@ -46,20 +46,22 @@ def main():
             c.connect()
             c.publish(b"heartbeat", getClientID())
             print("publish msg")
-            c.disconnect()
+            #c.disconnect()
 
             # read ds18x20 sensors
             values = readDS18x20()
             for value in values:
-                c.connect()
+                #c.connect()
                 pubMQTT(c, str(values.index(value)), str(value))
-                c.disconnect()
+                #c.disconnect()
 
         except Exception as e:
             print(str(e))
             time.sleep(10)
             import machine
             machine.reset()
+        finally:
+            c.disconnect()
         time.sleep(5)
 
 if __name__ == '__main__':
