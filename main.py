@@ -1,20 +1,12 @@
 import time
-from ubinascii import hexlify
-from machine import unique_id
-from robust import MQTTClient
-
-SERVER = "192.168.123.195"
-CLIENT_ID = "esp8266-" + str(hexlify(unique_id()), "utf-8")
-OneWirePin = 0
 
 time.sleep_ms(10000)
-
-def sub_cb(topic, msg):
-    print((topic, msg))
 
 def readDS18x20():
     from machine import Pin
     import onewire, ds18x20
+
+    OneWirePin = 0
 
     # the device is on GPIO12
     dat = Pin(OneWirePin)
@@ -32,26 +24,42 @@ def readDS18x20():
     print(values)
     return values
 
-c = MQTTClient("umqtt_client_" + CLIENT_ID, SERVER)
-c.DEBUG = False
-c.set_callback(sub_cb)
-if not c.connect(clean_session=False):
-    #print("New session being set up")
-    #c.subscribe(b"foo_topic")
-    c.publish(b"heartbeat", b"New session being set up")
+def getClientID():
+    from ubinascii import hexlify
+    from machine import unique_id
+    return "esp8266-" + str(hexlify(unique_id()), "utf-8")
+
+def initMQTT():
+    from simple import MQTTClient
+    SERVER = "192.168.123.195"
+
+    return MQTTClient("umqtt_client_" + getClientID(), SERVER)
+
+def pubMQTT(client, sensorID, sensorValue):
+    client.publish(getClientID() + "/" + "temperature" + "/" + sensorID, sensorValue)
 
 def main():
+    c = initMQTT()
+
     while True:
         try:
-            c.publish(b"heartbeat", CLIENT_ID)
+            c.connect()
+            c.publish(b"heartbeat", getClientID())
             print("publish msg")
+            c.disconnect()
 
             # read ds18x20 sensors
             values = readDS18x20()
             for value in values:
-                c.publish(CLIENT_ID + "/" + "temperature" + "/" + str(values.index(value)), str(value))
-        except TypeError as te:
-            pass
+                c.connect()
+                pubMQTT(c, str(values.index(value)), str(value))
+                c.disconnect()
+
+        except Exception as e:
+            print(str(e))
+            time.sleep(10)
+            import machine
+            machine.reset()
         time.sleep(5)
 
 if __name__ == '__main__':
