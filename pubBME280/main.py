@@ -1,11 +1,12 @@
 import time
 from ubinascii import hexlify
 import machine
+import network
 from umqtt import simple
 import bme280
 
 SERVER = "192.168.123.195"
-CLIENT_ID = "esp8266-" + str(hexlify(machine.unique_id()), "utf-8")
+CLIENT_ID = "ESP_" + str(hexlify(network.WLAN().config('mac')).decode()[6:].upper(), "utf-8")
 
 time.sleep_ms(10000)
 

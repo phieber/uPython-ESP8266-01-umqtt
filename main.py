@@ -26,8 +26,8 @@ def readDS18x20():
 
 def getClientID():
     from ubinascii import hexlify
-    from machine import unique_id
-    return "esp8266-" + str(hexlify(unique_id()), "utf-8")
+    import network
+    return "ESP_" + str(hexlify(network.WLAN().config('mac')).decode()[6:].upper(), "utf-8")
 
 def initMQTT():
     from simple import MQTTClient
